@@ -1,0 +1,74 @@
+# CIOS Full Project Setup
+
+## Backend Setup
+
+```powershell
+cd backend
+
+py -3.11 -m venv venv
+
+.\venv\Scripts\Activate
+
+python -m pip install --upgrade pip
+
+pip install -r requirements.txt
+
+copy .env.example .env
+
+set DATABASE_URL=sqlite+aiosqlite:///./cios_dev.db
+
+python -m uvicorn app.main:app --reload --port 8000
+
+Backend API Docs:
+http://127.0.0.1:8000/docs
+
+Now in a split terminal run the following:
+
+## Frontend Setup
+
+```powershell
+cd frontend
+
+npm install
+
+npm start
+
+If npm start does not work:
+
+npm run 
+
+Then use:
+
+npm run dev
+
+## Default Login
+
+Admin:
+Email: admin@cios.hospital
+Password: admin123
+
+Doctor:
+Email: doctor@cios.hospital
+Password: doctor123
+
+## Reset Backend Environment (If Errors Occur)
+
+```powershell
+Remove-Item -Recurse -Force venv
+
+py -3.11 -m venv venv
+
+.\venv\Scripts\Activate
+
+pip install -r requirements.txt
+
+## Reset Database
+
+```powershell
+del cios_dev.db
+
+Then rerun backend server:
+
+python -m uvicorn app.main:app --reload --port 8000
+
+
