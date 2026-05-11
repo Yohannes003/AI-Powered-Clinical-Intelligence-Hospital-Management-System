@@ -94,7 +94,7 @@ This project combines:
 # 📁 Project Structure
 
 ```bash
-cios_final_fixed/
+cios/
 │
 ├── backend/
 │   ├── app/
