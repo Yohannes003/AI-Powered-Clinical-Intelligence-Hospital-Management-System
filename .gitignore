@@ -3,6 +3,12 @@
 docker_logs*
 
 # ignore runtime artifacts
+**/*.db
+**/*.db-shm
+**/*.db-wal
+**/server.err
+**/server.log
+cios_v6/backend/reports/
 **/__pycache__/
 **/node_modules/
 **/.venv/
