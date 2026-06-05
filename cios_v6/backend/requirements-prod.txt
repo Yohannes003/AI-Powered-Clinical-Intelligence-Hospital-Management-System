@@ -1,0 +1,14 @@
+# ─────────────────────────────────────────────────────────
+#  CIOS — requirements-prod.txt  (PostgreSQL + Redis)
+#  Use this for Docker / production deployment.
+# ─────────────────────────────────────────────────────────
+-r requirements.txt
+
+# PostgreSQL async driver
+asyncpg==0.29.0
+psycopg2-binary==2.9.9
+
+# Redis / Celery
+redis==5.0.4
+aioredis==2.0.1
+celery==5.4.0

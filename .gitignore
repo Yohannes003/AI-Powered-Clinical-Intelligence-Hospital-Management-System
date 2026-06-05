@@ -1,0 +1,18 @@
+# ignore runtime logs
+*_logs*.txt
+docker_logs*
+
+# ignore runtime artifacts
+**/__pycache__/
+**/node_modules/
+**/.venv/
+**/.env
+**/.DS_Store
+**/dist/
+**/build/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/coverage/
+**/logs/
+**/tmp/

@@ -1,0 +1,106 @@
+# ICU Monitoring System - Docker Compose
+# Full stack with PostgreSQL, FastAPI backend, React frontend, and simulator
+
+version: "3.9"
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: icu-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: icu_user
+      POSTGRES_PASSWORD: icu_password
+      POSTGRES_DB: icu_monitoring
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U icu_user -d icu_monitoring"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - icu-network
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: icu-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://icu_user:icu_password@postgres:5432/icu_monitoring
+      PYTHONPATH: /app
+      LOG_LEVEL: INFO
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - /app/__pycache__
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      sh -c "python -c 'from app.database import init_db; init_db()' &&
+             python app/ml/train_model.py &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - icu-network
+
+  # ICU Simulator (runs as a separate service)
+  simulator:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: icu-simulator
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://icu_user:icu_password@postgres:5432/icu_monitoring
+      PYTHONPATH: /app
+    volumes:
+      - ./backend:/app
+      - /app/__pycache__
+    depends_on:
+      - backend
+    healthcheck:
+      disable: true
+    command: >
+      sh -c "sleep 15 && python -c 'import asyncio; from simulator.icu_simulator import ICUSimulator; sim = ICUSimulator(); asyncio.run(sim.start())'"
+    networks:
+      - icu-network
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: icu-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000
+      - VITE_WS_URL=ws://localhost:8000
+    depends_on:
+      - backend
+    networks:
+      - icu-network
+
+volumes:
+  postgres_data:
+
+networks:
+  icu-network:
+    driver: bridge
